@@ -22,7 +22,18 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "public/",
+        "to": "../dist/",
+        "filter": [
+          "*.png",
+          "*.ico"
+        ]
+      }
     ],
     "win": {
       "target": [
@@ -34,6 +45,7 @@
         }
       ],
       "icon": "public/icon.png",
+      "legalTrademarks": "Sercan ÖZDEMİR",
       "signAndEditExecutable": false
     },
     "nsis": {

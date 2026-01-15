@@ -13,23 +13,23 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
     const [logoBase64, setLogoBase64] = useState('');
     const [cheatingThreshold, setCheatingThreshold] = useState(90);
     const [cheatingAnalysis, setCheatingAnalysis] = useState([]);
-    
+
     // Özelleştirme ayarları
     const [showLogo, setShowLogo] = useState(true);
     const [showSubtitle, setShowSubtitle] = useState(true);
     const [subtitle, setSubtitle] = useState('');
-    
+
     // TC Maskeleme
     const [maskTCEnabled, setMaskTCEnabled] = useState(true);
-    
+
     // Rapor Başlığı
     const [reportTitle, setReportTitle] = useState('');
-    
+
     // İmza Etiketleri
     const [signature1, setSignature1] = useState('Şube Müdürü');
     const [signature2, setSignature2] = useState('Başkan');
     const [signature3, setSignature3] = useState('Üye');
-    
+
     // Sayfa Ayarları
     const [fontSize, setFontSize] = useState(7); // 5-10 pt
     const [pageOrientation, setPageOrientation] = useState('portrait'); // portrait, landscape
@@ -39,13 +39,13 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
     useEffect(() => {
         // Mevcut scroll pozisyonunu kaydet
         const scrollY = window.scrollY;
-        
+
         // Body'yi fixed yap ve scroll pozisyonunu koru
         document.body.style.position = 'fixed';
         document.body.style.top = `-${scrollY}px`;
         document.body.style.width = '100%';
         document.body.style.overflow = 'hidden';
-        
+
         // Modal kapanınca geri al
         return () => {
             document.body.style.position = '';
@@ -58,16 +58,34 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
 
     // Logo'yu base64 formatına çevir
     useEffect(() => {
-        fetch('/logo.png')
-            .then(res => res.blob())
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setLogoBase64(reader.result);
-                };
-                reader.readAsDataURL(blob);
-            })
-            .catch(err => console.error('Logo yüklenemedi:', err));
+        const loadLogo = async () => {
+            // Farklı yolları dene (development ve production için)
+            const possiblePaths = [
+                '/logo.png',      // Development mode (vite dev server)
+                './logo.png',     // Production mode (relative path)
+                'logo.png'        // Production mode (fallback)
+            ];
+
+            for (const logoPath of possiblePaths) {
+                try {
+                    const response = await fetch(logoPath);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            setLogoBase64(reader.result);
+                        };
+                        reader.readAsDataURL(blob);
+                        return; // Başarılıysa dur
+                    }
+                } catch (err) {
+                    console.warn(`Logo yolu denendi: ${logoPath}`, err);
+                }
+            }
+            console.error('Logo hiçbir yoldan yüklenemedi');
+        };
+
+        loadLogo();
     }, []);
 
     // Salonları grupla
@@ -78,7 +96,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         return acc;
     }, {});
 
-    const salons = Object.keys(salonGroups).sort((a, b) => 
+    const salons = Object.keys(salonGroups).sort((a, b) =>
         String(a).localeCompare(String(b), undefined, { numeric: true })
     );
 
@@ -92,7 +110,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
     const analyzeCheating = () => {
         const suspicious = [];
         const byRoom = {};
-        
+
         data.forEach(r => {
             if (r.Durum !== 'Girdi' || !r.Cevaplar) return;
             const room = r['Salon No'] || 'Genel';
@@ -242,7 +260,8 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
             // HTML içeriğini al ve logo'yu base64 yap
             let htmlContent = printRef.current.innerHTML;
             if (base64Logo) {
-                htmlContent = htmlContent.replace(/src="\/logo\.png"/g, `src="${base64Logo}"`);
+                // Tüm olası logo yollarını değiştir
+                htmlContent = htmlContent.replace(/src="(\.?\/)?logo\.png"/g, `src="${base64Logo}"`);
             }
 
             // Yeni pencerede aç ve yazdır
@@ -295,17 +314,18 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                         base64Logo = '';
                     }
                 }
-                
+
                 // Logo'yu base64 olarak değiştir
                 let htmlContent = printRef.current.innerHTML;
                 if (base64Logo) {
-                    htmlContent = htmlContent.replace(/src="\/logo\.png"/g, `src="${base64Logo}"`);
+                    // Tüm olası logo yollarını değiştir
+                    htmlContent = htmlContent.replace(/src="(\.?\/)?logo\.png"/g, `src="${base64Logo}"`);
                 }
                 const html = getPrintStyles() + htmlContent;
-                
-                const filename = reportType === 'salonList' ? 'Salon_Listeleri' : 
-                                reportType === 'individual' ? 'Bireysel_Raporlar' : 
-                                reportType === 'cheating' ? 'Ihlal_Raporu' : 'Ozet_Rapor';
+
+                const filename = reportType === 'salonList' ? 'Salon_Listeleri' :
+                    reportType === 'individual' ? 'Bireysel_Raporlar' :
+                        reportType === 'cheating' ? 'Ihlal_Raporu' : 'Ozet_Rapor';
                 const saved = await window.api.printToPDF(html, filename);
                 if (saved) {
                     alert('PDF başarıyla kaydedildi!');
@@ -328,7 +348,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
     const getCellPadding = (studentCount) => {
         // Font boyutuna göre padding ayarla (fontSize 5-10 arası)
         const paddingMultiplier = fontSize / 7; // 7pt normal kabul edilir
-        
+
         let basePadding;
         if (studentCount <= 25) {
             basePadding = 3;
@@ -337,7 +357,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         } else {
             basePadding = 1.5;
         }
-        
+
         const vPad = Math.round(basePadding * paddingMultiplier);
         const hPad = Math.round(basePadding * paddingMultiplier * 0.8);
         return `${vPad}px ${hPad}px`;
@@ -354,6 +374,13 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         const middleLength = tcStr.length - 5;
         const stars = '*'.repeat(middleLength);
         return `${first3}${stars}${last2}`;
+    };
+
+
+    // Logo kaynağını getir (base64 veya fallback yol)
+    const getLogoSrc = () => {
+        if (logoBase64) return logoBase64;
+        return './logo.png'; // Production için göreceli yol
     };
 
     // Rapor başlığını getir (özel veya varsayılan)
@@ -374,7 +401,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
             return (
                 <div key={salon} className="print-page">
                     <div className="print-header">
-                        {showLogo && <img src="/logo.png" alt="MEB Logo" className="print-logo-img" />}
+                        {showLogo && <img src={getLogoSrc()} alt="MEB Logo" className="print-logo-img" />}
                         <h2>T.C. MİLLİ EĞİTİM BAKANLIĞI</h2>
                         {showSubtitle && subtitle && <h3 className="print-subtitle">{subtitle}</h3>}
                         <h1>{getReportTitle('SINAV SONUÇ LİSTESİ')}</h1>
@@ -407,7 +434,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                                 const isFailure = String(student.Sonuç).includes('Başarısız') || String(student.Durum).toLowerCase().includes('girmedi');
                                 const isExempt = String(student.Durum).includes('MUAF');
                                 const tdStyle = { padding: cellPadding };
-                                
+
                                 return (
                                     <tr key={idx} className={isFailure ? 'failure' : isExempt ? 'exempt' : ''}>
                                         <td style={tdStyle}>{idx + 1}</td>
@@ -438,7 +465,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                         <p className="footer-stats">
                             Sınava giren öğrenciden <strong>({passedCount})</strong> kişi başarılı olmuştur.
                         </p>
-                        
+
                         <div className="signatures">
                             <div className="signature-box">
                                 <div className="signature-line"></div>
@@ -464,7 +491,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         return data.map((student, idx) => (
             <div key={idx} className="print-page individual-report">
                 <div className="print-header">
-                    {showLogo && <img src="/logo.png" alt="MEB Logo" className="print-logo-img" />}
+                    {showLogo && <img src={getLogoSrc()} alt="MEB Logo" className="print-logo-img" />}
                     <h2>T.C. MİLLİ EĞİTİM BAKANLIĞI</h2>
                     {showSubtitle && subtitle && <h3 className="print-subtitle">{subtitle}</h3>}
                     <h1>{getReportTitle('BİREYSEL SINAV PERFORMANS RAPORU')}</h1>
@@ -539,7 +566,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         return (
             <div className="print-page summary-report">
                 <div className="print-header">
-                    {showLogo && <img src="/logo.png" alt="MEB Logo" className="print-logo-img" />}
+                    {showLogo && <img src={getLogoSrc()} alt="MEB Logo" className="print-logo-img" />}
                     <h2>T.C. MİLLİ EĞİTİM BAKANLIĞI</h2>
                     {showSubtitle && subtitle && <h3 className="print-subtitle">{subtitle}</h3>}
                     <h1>{getReportTitle('SINAV ANALİZ ÖZET RAPORU')}</h1>
@@ -591,7 +618,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                                 const students = salonGroups[salon];
                                 const passed = students.filter(s => String(s.Sonuç).includes('Başarılı')).length;
                                 const avg = (students.reduce((sum, s) => sum + parseFloat(s.Puan || 0), 0) / students.length).toFixed(2);
-                                
+
                                 return (
                                     <tr key={salon}>
                                         <td>{salon}</td>
@@ -621,7 +648,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
         return (
             <div className="print-page cheating-report">
                 <div className="print-header">
-                    {showLogo && <img src="/logo.png" alt="MEB Logo" className="print-logo-img" />}
+                    {showLogo && <img src={getLogoSrc()} alt="MEB Logo" className="print-logo-img" />}
                     <h2>T.C. MİLLİ EĞİTİM BAKANLIĞI</h2>
                     {showSubtitle && subtitle && <h3 className="print-subtitle">{subtitle}</h3>}
                     <h1>{getReportTitle('⚠️ SINAV İHLALİ ANALİZ RAPORU')}</h1>
@@ -680,7 +707,7 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
 
                         <div className="print-footer">
                             <p className="footer-note">
-                                Not: Bu rapor sadece istatistiksel benzerliğe dayanmaktadır. 
+                                Not: Bu rapor sadece istatistiksel benzerliğe dayanmaktadır.
                                 Kesin hüküm için detaylı inceleme yapılmalıdır.
                             </p>
                             <div className="signatures">
@@ -726,48 +753,48 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                 <div className="print-sidebar no-print">
                     <div className="sidebar-section">
                         <h3>📋 Rapor Ayarları</h3>
-                        
+
                         <label className="checkbox-item">
-                            <input 
-                                type="checkbox" 
-                                checked={showLogo} 
-                                onChange={(e) => setShowLogo(e.target.checked)} 
+                            <input
+                                type="checkbox"
+                                checked={showLogo}
+                                onChange={(e) => setShowLogo(e.target.checked)}
                             />
                             <span>Logo Göster</span>
                         </label>
-                        
+
                         <label className="checkbox-item">
-                            <input 
-                                type="checkbox" 
-                                checked={showSubtitle} 
-                                onChange={(e) => setShowSubtitle(e.target.checked)} 
+                            <input
+                                type="checkbox"
+                                checked={showSubtitle}
+                                onChange={(e) => setShowSubtitle(e.target.checked)}
                             />
                             <span>Alt Başlık Göster</span>
                         </label>
-                        
+
                         {showSubtitle && (
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="subtitle-input"
                                 placeholder="Kurum adı veya başlık..."
                                 value={subtitle}
                                 onChange={(e) => setSubtitle(e.target.value)}
                             />
                         )}
-                        
+
                         <label className="checkbox-item">
-                            <input 
-                                type="checkbox" 
-                                checked={maskTCEnabled} 
-                                onChange={(e) => setMaskTCEnabled(e.target.checked)} 
+                            <input
+                                type="checkbox"
+                                checked={maskTCEnabled}
+                                onChange={(e) => setMaskTCEnabled(e.target.checked)}
                             />
                             <span>TC Kimlik Maskele</span>
                         </label>
-                        
+
                         <div className="input-section">
                             <label>📝 Rapor Başlığı</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="subtitle-input"
                                 placeholder="Özel başlık (boş bırakılırsa varsayılan)"
                                 value={reportTitle}
@@ -778,11 +805,11 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                         {reportType === 'cheating' && (
                             <div className="threshold-section">
                                 <label>Benzerlik Eşiği (%)</label>
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     className="threshold-input"
-                                    min="50" 
-                                    max="100" 
+                                    min="50"
+                                    max="100"
                                     value={cheatingThreshold}
                                     onChange={(e) => setCheatingThreshold(Number(e.target.value))}
                                 />
@@ -790,27 +817,27 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                             </div>
                         )}
                     </div>
-                    
+
                     {/* İmza Etiketleri */}
                     <div className="sidebar-section">
                         <h3>✍️ İmza Etiketleri</h3>
                         <div className="signature-inputs">
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="signature-input"
                                 placeholder="İmza 1"
                                 value={signature1}
                                 onChange={(e) => setSignature1(e.target.value)}
                             />
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="signature-input"
                                 placeholder="İmza 2"
                                 value={signature2}
                                 onChange={(e) => setSignature2(e.target.value)}
                             />
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="signature-input"
                                 placeholder="İmza 3"
                                 value={signature3}
@@ -818,19 +845,19 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                             />
                         </div>
                     </div>
-                    
+
                     {/* Sayfa Ayarları */}
                     <div className="sidebar-section">
                         <h3>📐 Sayfa Ayarları</h3>
-                        
+
                         <div className="setting-row">
                             <label>Yazı Boyutu</label>
                             <div className="scale-container">
-                                <input 
-                                    type="range" 
+                                <input
+                                    type="range"
                                     className="scale-slider"
-                                    min="5" 
-                                    max="15" 
+                                    min="5"
+                                    max="15"
                                     step="0.5"
                                     value={fontSize}
                                     onChange={(e) => setFontSize(Number(e.target.value))}
@@ -838,10 +865,10 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                                 <span className="scale-value">{fontSize}pt</span>
                             </div>
                         </div>
-                        
+
                         <div className="setting-row">
                             <label>Sayfa Yönü</label>
-                            <select 
+                            <select
                                 className="setting-select"
                                 value={pageOrientation}
                                 onChange={(e) => setPageOrientation(e.target.value)}
@@ -850,15 +877,15 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                                 <option value="landscape">📃 Yatay</option>
                             </select>
                         </div>
-                        
+
                         <div className="setting-row">
                             <label>Ölçek</label>
                             <div className="scale-container">
-                                <input 
-                                    type="range" 
+                                <input
+                                    type="range"
                                     className="scale-slider"
-                                    min="50" 
-                                    max="150" 
+                                    min="50"
+                                    max="150"
                                     step="10"
                                     value={pageScale}
                                     onChange={(e) => setPageScale(Number(e.target.value))}
@@ -870,10 +897,10 @@ export default function PrintPreview({ data, onClose, reportType = 'salonList', 
                 </div>
 
                 {/* Sağ Panel - Önizleme */}
-                <div 
-                    className={`print-preview-content ${pageOrientation === 'landscape' ? 'landscape' : ''}`} 
+                <div
+                    className={`print-preview-content ${pageOrientation === 'landscape' ? 'landscape' : ''}`}
                     ref={printRef}
-                    style={{ 
+                    style={{
                         '--page-scale': pageScale / 100,
                         '--font-size-multiplier': fontSize === 'small' ? 0.85 : fontSize === 'large' ? 1.15 : 1
                     }}

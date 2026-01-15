@@ -6,9 +6,103 @@
  * @date 2024
  */
 
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+
+// Development veya Production modunu belirle
+const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
+
+// İkon yolunu moda göre belirle
+const getIconPath = () => {
+    if (isDev) {
+        return path.join(__dirname, '../public/icon.ico');
+    } else {
+        return path.join(__dirname, '../dist/icon.ico');
+    }
+};
+
+// Uygulama bilgileri
+const APP_NAME = 'Optik Değerlendirme';
+const APP_VERSION = '1.4.0';
+const APP_AUTHOR = 'Sercan ÖZDEMİR';
+
+// Türkçe Menü Şablonu
+const createMenu = () => {
+    const template = [
+        {
+            label: 'Dosya',
+            submenu: [
+                { label: 'Yeni Sınav', accelerator: 'CmdOrCtrl+N', click: () => mainWindow?.webContents.send('menu-new-exam') },
+                { type: 'separator' },
+                { label: 'Çıkış', accelerator: 'CmdOrCtrl+Q', click: () => app.quit() }
+            ]
+        },
+        {
+            label: 'Düzen',
+            submenu: [
+                { label: 'Geri Al', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
+                { label: 'Yinele', accelerator: 'CmdOrCtrl+Y', role: 'redo' },
+                { type: 'separator' },
+                { label: 'Kes', accelerator: 'CmdOrCtrl+X', role: 'cut' },
+                { label: 'Kopyala', accelerator: 'CmdOrCtrl+C', role: 'copy' },
+                { label: 'Yapıştır', accelerator: 'CmdOrCtrl+V', role: 'paste' },
+                { label: 'Tümünü Seç', accelerator: 'CmdOrCtrl+A', role: 'selectAll' }
+            ]
+        },
+        {
+            label: 'Görünüm',
+            submenu: [
+                { label: 'Yenile', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+                { label: 'Zorla Yenile', accelerator: 'CmdOrCtrl+Shift+R', role: 'forceReload' },
+                { type: 'separator' },
+                { label: 'Yakınlaştır', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
+                { label: 'Uzaklaştır', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
+                { label: 'Varsayılan Boyut', accelerator: 'CmdOrCtrl+0', role: 'resetZoom' },
+                { type: 'separator' },
+                { label: 'Tam Ekran', accelerator: 'F11', role: 'togglefullscreen' }
+            ]
+        },
+        {
+            label: 'Pencere',
+            submenu: [
+                { label: 'Küçült', accelerator: 'CmdOrCtrl+M', role: 'minimize' },
+                { label: 'Büyüt/Küçült', click: () => mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize() },
+                { type: 'separator' },
+                { label: 'Kapat', accelerator: 'CmdOrCtrl+W', role: 'close' }
+            ]
+        },
+        {
+            label: 'Yardım',
+            submenu: [
+                {
+                    label: 'Kullanım Kılavuzu',
+                    accelerator: 'F1',
+                    click: () => mainWindow?.webContents.send('menu-show-help')
+                },
+                { type: 'separator' },
+                {
+                    label: 'Hakkında',
+                    click: () => {
+                        dialog.showMessageBox(mainWindow, {
+                            type: 'info',
+                            title: `${APP_NAME} Hakkında`,
+                            message: APP_NAME,
+                            detail: `Sürüm: ${APP_VERSION}\n\nGeliştirici: ${APP_AUTHOR}\nE-posta: sercanozdemir@yandex.com\n\nBu uygulama, optik form okuyucudan alınan verileri işleyerek sınav değerlendirmesi yapmanızı sağlar.\n\n© 2024-2026 Tüm hakları saklıdır.`,
+                            icon: getIconPath(),
+                            buttons: ['Tamam']
+                        });
+                    }
+                }
+            ]
+        }
+    ];
+
+    // Development modunda ek menü
+
+
+    return Menu.buildFromTemplate(template);
+};
 
 // -----------------------------------------------------------------------------
 //  PENCERE YÖNETİMİ & IPC
@@ -25,7 +119,8 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        icon: path.join(__dirname, '../public/icon.png'), // Uygulama ikonu
+        title: APP_NAME, // Pencere başlığı
+        icon: getIconPath(), // Uygulama ikonu
         show: false, // Hazır olana kadar gizle
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'), // Preload scripti
@@ -50,7 +145,7 @@ function createWindow() {
             nodeIntegration: false
         }
     });
-    const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
+    // isDev zaten üstte tanımlı
 
     // Geliştirme modundaysa localhost, değilse build dosyasını yükle
     if (isDev) {
@@ -63,6 +158,9 @@ function createWindow() {
 
 // Uygulama hazır olduğunda pencereyi aç
 app.whenReady().then(() => {
+    // Türkçe menüyü ayarla
+    Menu.setApplicationMenu(createMenu());
+
     createWindow();
 
     app.on('activate', () => {
@@ -94,7 +192,7 @@ ipcMain.on('open-cheating-window', (event, data) => {
         width: 1000,
         height: 800,
         title: "Sınav İhlali Analiz Raporu",
-        icon: path.join(__dirname, '../public/icon.png'),
+        icon: getIconPath(),
         autoHideMenuBar: true,
         show: true, // Force show immediately
         webPreferences: {
@@ -104,7 +202,7 @@ ipcMain.on('open-cheating-window', (event, data) => {
         },
     });
 
-    const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
+    // isDev zaten üstte tanımlı
 
     if (isDev) {
         cheatingWindow.loadURL('http://localhost:5173/#cheating');
