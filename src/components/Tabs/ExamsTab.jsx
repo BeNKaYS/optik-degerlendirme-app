@@ -1,0 +1,613 @@
+/**
+ * @file ExamsTab.jsx
+ * @description Sınavların oluşturulduğu, listelendiği ve yüklendiği ana yönetim ekranı.
+ * @author Sercan ÖZDEMİR
+ * @date 2024
+ */
+
+import { useState, useEffect } from 'react';
+
+// ==========================================
+//  BİLEŞEN TANIMI
+// ==========================================
+export default function ExamsTab({
+    currentData,
+    onLoadExam,
+    onStartExam,
+    onDeleteExam
+}) {
+    // -------------------------------------------------------------------------
+    //  STATE YÖNETİMİ
+    // -------------------------------------------------------------------------
+    const [exams, setExams] = useState([]);
+    const [examName, setExamName] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [msg, setMsg] = useState(null);
+
+    // -------------------------------------------------------------------------
+    //  YARDIMCI ENDPOİNTS VEYA MANTIK
+    // -------------------------------------------------------------------------
+
+    /**
+     * Sınav listesini backend'den (dosya sistemi) çeker.
+     */
+    const refreshExams = async () => {
+        if (!window.api?.getExams) return;
+        setLoading(true);
+        try {
+            const list = await window.api.getExams();
+            // Tarihe göre tersten sırala (En yeni en üstte)
+            list.sort((a, b) => b.timestamp - a.timestamp);
+            setExams(list);
+        } catch (e) {
+            console.error(e);
+            setMsg({ type: 'error', text: 'Sınav listesi alınamadı. Lütfen uygulamayı yeniden başlatın.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // İlk açılışta listeyi çek
+    useEffect(() => {
+        refreshExams();
+    }, []);
+
+    // -------------------------------------------------------------------------
+    //  İŞLEYİCİLER (HANDLERS)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Yeni sınav başlatma süreci.
+     * 1. Boş bir sınav objesi oluşturur.
+     * 2. Backend'e kaydeder.
+     * 3. Uygulama state'ini günceller ve kullanıcıyı Yoklama sekmesine yönlendirir.
+     */
+    const handleStart = async () => {
+        setLoading(true);
+        try {
+            // Tarih etiketi oluştur
+            const today = new Date();
+            const dateStr = `${String(today.getDate()).padStart(2, '0')}_${String(today.getMonth() + 1).padStart(2, '0')}_${today.getFullYear()}`;
+
+            // Eğer kullanıcı isim girmediyse otomatik isim ver
+            let finalName;
+            if (!examName.trim()) {
+                finalName = `SNV_${dateStr}`;
+            } else {
+                finalName = `${examName.trim()}_${dateStr}`;
+            }
+
+            // Boş sınav yapısı
+            const newExam = {
+                id: Date.now().toString(),
+                name: finalName,
+                timestamp: Date.now(),
+                data: {}
+            };
+
+            // Veritabanına kaydet
+            if (window.api?.saveExam) {
+                await window.api.saveExam(newExam);
+            }
+
+            // Global State'e bildir - tam objeyi gönder
+            onStartExam(newExam);
+
+            setMsg({ type: 'success', text: `"${finalName}" oluşturuldu. Başlıyor...` });
+            setExamName('');
+            await refreshExams();
+        } catch (e) {
+            setMsg({ type: 'error', text: 'Oluşturma hatası: ' + e.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * Sınav kaydını siler.
+     */
+    const handleDelete = async (id) => {
+        if (!confirm('Bu sınav kaydını silmek istediğinize emin misiniz?')) return;
+        try {
+            await window.api.deleteExam(id);
+            await refreshExams();
+        } catch (e) {
+            setMsg({ type: 'error', text: 'Silme işlemi başarısız.' });
+        }
+    };
+
+    /**
+     * Sınav verilerini yükler (tam veriyi çeker).
+     */
+    const handleLoadExam = async (examId) => {
+        setLoading(true);
+        try {
+            const fullExam = await window.api.getExamById(examId);
+            if (fullExam) {
+                onLoadExam(fullExam);
+            } else {
+                setMsg({ type: 'error', text: 'Sınav verisi bulunamadı.' });
+            }
+        } catch (e) {
+            setMsg({ type: 'error', text: 'Sınav yüklenemedi: ' + e.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // -------------------------------------------------------------------------
+    //  RENDER
+    // -------------------------------------------------------------------------
+    return (
+        <div className="tab-content glass-panel">
+            <div className="tab-header">
+                <h2>Sınav Yönetimi</h2>
+                <p className="text-secondary">Yeni bir sınav başlatın veya kayıtlı sınavları yönetin.</p>
+            </div>
+
+            {/* Yeni Sınav Başlatma Alanı */}
+            <div className="modern-exam-creator">
+                <div className="creator-header">
+                    <span className="creator-icon">🚀</span>
+                    <div>
+                        <h3 className="creator-title">Yeni Sınav Başlat</h3>
+                        <p className="creator-subtitle">Sınav adı girebilir veya otomatik isim ile başlatabilirsiniz</p>
+                    </div>
+                </div>
+                <div className="creator-input-section">
+                    <div className="modern-input-wrapper">
+                        <span className="input-icon">📝</span>
+                        <input
+                            type="text"
+                            placeholder="Sınav Adı (Örn: SRC Kızıltepe) - Boş Bırakılabilir"
+                            value={examName}
+                            onChange={(e) => setExamName(e.target.value)}
+                            className="modern-exam-input"
+                        />
+                    </div>
+                    <button
+                        className="modern-start-btn"
+                        onClick={handleStart}
+                        disabled={loading}
+                    >
+                        <span className="btn-icon">▶</span>
+                        <span className="btn-text">{loading ? 'Oluşturuluyor...' : 'BAŞLA'}</span>
+                    </button>
+                </div>
+                <div className="creator-info">
+                    <span className="info-icon">💡</span>
+                    <span className="info-text">
+                        {examName.trim()
+                            ? `"${examName}_TARIH" formatında kaydedilecek`
+                            : `Otomatik "SNV_TARIH" formatında kaydedilecek`
+                        }
+                    </span>
+                </div>
+            </div>
+
+            {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
+
+            <div className="divider"></div>
+
+            {/* Sınav Listesi */}
+            <div className="list-section">
+                <h3>Kayıtlı Sınavlar</h3>
+                {exams.length === 0 ? (
+                    <div className="empty-state">Henüz kayıtlı sınav bulunmuyor.</div>
+                ) : (
+                    <div className="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sınav Adı</th>
+                                    <th>Kayıt Tarihi</th>
+                                    <th>Veri Durumu</th>
+                                    <th style={{ textAlign: 'right' }}>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {exams.map(exam => {
+                                    // Yeni yapı: meta bilgiler doğrudan exam objesinde
+                                    const hasAtt = exam.hasAttendance;
+                                    const hasOpt = exam.hasOptical;
+                                    const hasKey = exam.hasAnswerKey;
+                                    const hasRes = exam.hasResults;
+
+                                    return (
+                                        <tr key={exam.id}>
+                                            <td className="font-bold">{exam.name}</td>
+                                            <td className="text-secondary">
+                                                {new Date(exam.timestamp).toLocaleString('tr-TR')}
+                                            </td>
+                                            <td>
+                                                <div className="data-badges">
+                                                    {hasAtt && <span className="badge badge-blue">Yoklama</span>}
+                                                    {hasOpt && <span className="badge badge-green">Optik</span>}
+                                                    {hasKey && <span className="badge badge-purple">Anahtar</span>}
+                                                    {hasRes && <span className="badge badge-orange">Sonuç</span>}
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <button
+                                                    className="action-btn load-btn"
+                                                    onClick={() => handleLoadExam(exam.id)}
+                                                    title="Yükle"
+                                                >
+                                                    📂 Yükle
+                                                </button>
+                                                <button
+                                                    className="action-btn delete-btn"
+                                                    onClick={() => handleDelete(exam.id)}
+                                                    title="Sil"
+                                                >
+                                                    🗑️ Sil
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            <style>{`
+                /* ===== MODERN EXAM CREATOR ===== */
+                .modern-exam-creator {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 28px;
+                    border-radius: 16px;
+                    margin-bottom: 24px;
+                    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+                }
+
+                .creator-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+
+                .creator-icon {
+                    font-size: 2.5rem;
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 12px;
+                    border-radius: 12px;
+                    backdrop-filter: blur(10px);
+                }
+
+                .creator-title {
+                    margin: 0;
+                    font-size: 1.6rem;
+                    font-weight: 700;
+                    color: white;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .creator-subtitle {
+                    margin: 4px 0 0 0;
+                    font-size: 0.9rem;
+                    color: rgba(255, 255, 255, 0.9);
+                }
+
+                .creator-input-section {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    flex-wrap: wrap;
+                }
+
+                .modern-input-wrapper {
+                    position: relative;
+                    flex: 1;
+                    min-width: 300px;
+                }
+
+                .input-icon {
+                    position: absolute;
+                    left: 14px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    font-size: 1.2rem;
+                    pointer-events: none;
+                }
+
+                .modern-exam-input {
+                    width: 100%;
+                    padding: 14px 14px 14px 45px;
+                    background: white;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 12px;
+                    font-size: 1rem;
+                    color: #1e293b;
+                    font-weight: 500;
+                    box-sizing: border-box;
+                    transition: all 0.3s ease;
+                }
+
+                .modern-exam-input:focus {
+                    outline: none;
+                    border-color: #fbbf24;
+                    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+                }
+
+                .modern-exam-input::placeholder {
+                    color: #94a3b8;
+                }
+
+                .modern-start-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    padding: 14px 32px;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                    white-space: nowrap;
+                }
+
+                .modern-start-btn:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+                }
+
+                .modern-start-btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
+                .btn-icon {
+                    font-size: 1rem;
+                }
+
+                .btn-text {
+                    font-weight: 700;
+                }
+
+                .creator-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 12px 16px;
+                    border-radius: 10px;
+                    backdrop-filter: blur(10px);
+                }
+
+                .info-icon {
+                    font-size: 1.2rem;
+                }
+
+                .info-text {
+                    color: white;
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                }
+
+                /* ===== TABLE SECTION ===== */
+                .list-section h3 {
+                    margin-bottom: 16px;
+                    font-size: 1.3rem;
+                    color: #1e293b;
+                    font-weight: 700;
+                }
+
+                .divider {
+                    height: 1px;
+                    background: rgba(255, 255, 255, 0.1);
+                    margin: 30px 0;
+                }
+
+                .table-wrapper {
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                th {
+                    background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+                    padding: 16px;
+                    text-align: left;
+                    font-weight: 700;
+                    color: #0f172a;
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                td {
+                    padding: 16px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    color: #1e293b;
+                    font-weight: 500;
+                }
+
+                tr:last-child td {
+                    border-bottom: none;
+                }
+
+                tr:hover {
+                    background: rgba(102, 126, 234, 0.1);
+                }
+
+                .data-badges {
+                    display: flex;
+                    gap: 6px;
+                    flex-wrap: wrap;
+                }
+
+                .badge {
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+
+                .badge-blue {
+                    background: rgba(59, 130, 246, 0.25);
+                    color: #60a5fa;
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                }
+
+                .badge-green {
+                    background: rgba(16, 185, 129, 0.25);
+                    color: #34d399;
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                }
+
+                .badge-purple {
+                    background: rgba(139, 92, 246, 0.25);
+                    color: #a78bfa;
+                    border: 1px solid rgba(139, 92, 246, 0.3);
+                }
+
+                .badge-orange {
+                    background: rgba(245, 158, 11, 0.25);
+                    color: #fbbf24;
+                    border: 1px solid rgba(245, 158, 11, 0.3);
+                }
+
+                .action-btn {
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    cursor: pointer;
+                    padding: 8px 14px;
+                    border-radius: 8px;
+                    transition: all 0.2s;
+                    margin-left: 6px;
+                    font-weight: 600;
+                    color: #475569;
+                }
+
+                .load-btn {
+                    color: #3b82f6;
+                }
+
+                .delete-btn {
+                    color: #ef4444;
+                }
+
+                .load-btn:hover {
+                    background: rgba(59, 130, 246, 0.15);
+                    border-color: #3b82f6;
+                    color: #2563eb;
+                }
+
+                .delete-btn:hover {
+                    background: rgba(239, 68, 68, 0.15);
+                    border-color: #ef4444;
+                    color: #dc2626;
+                }
+
+                .alert {
+                    padding: 14px 18px;
+                    border-radius: 10px;
+                    margin-top: 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-weight: 500;
+                }
+
+                .alert.success {
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+                    color: #34d399;
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                }
+
+                .alert.error {
+                    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+                    color: #f87171;
+                    border: 1px solid rgba(239, 68, 68, 0.3);
+                }
+
+                .text-secondary {
+                    color: #64748b !important;
+                }
+
+                .font-bold {
+                    font-weight: 700;
+                    color: #0f172a !important;
+                }
+
+                .empty-state {
+                    text-align: center;
+                    padding: 60px 20px;
+                    color: #94a3b8;
+                    font-size: 1.1rem;
+                }
+
+                /* ===== LIGHT MODE STYLES ===== */
+                .light-mode .modern-exam-creator {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+
+                .light-mode .modern-exam-input {
+                    background: white;
+                    color: #1e293b;
+                }
+
+                .light-mode .list-section h3 {
+                    color: #1e293b;
+                }
+
+                .light-mode .divider {
+                    background: rgba(0, 0, 0, 0.1);
+                }
+
+                .light-mode .table-wrapper {
+                    border-color: rgba(0, 0, 0, 0.1);
+                }
+
+                .light-mode th {
+                    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                    color: #1e293b;
+                }
+
+                .light-mode td {
+                    color: #334155;
+                    border-bottom-color: rgba(0, 0, 0, 0.05);
+                }
+
+                .light-mode tr:hover {
+                    background: rgba(102, 126, 234, 0.05);
+                }
+
+                .light-mode .action-btn {
+                    background: rgba(0, 0, 0, 0.05);
+                    border-color: rgba(0, 0, 0, 0.1);
+                    color: #64748b;
+                }
+
+                .light-mode .load-btn:hover {
+                    background: rgba(59, 130, 246, 0.15);
+                    color: #3b82f6;
+                }
+
+                .light-mode .delete-btn:hover {
+                    background: rgba(239, 68, 68, 0.15);
+                    color: #ef4444;
+                }
+
+                .light-mode .empty-state {
+                    color: #94a3b8;
+                }
+            `}</style>
+        </div>
+    );
+}

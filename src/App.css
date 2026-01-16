@@ -1,0 +1,281 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.app-header {
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--header-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.badge-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.badge-red {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.help-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.help-btn:hover {
+  background: var(--hover-bg);
+  color: var(--hover-text);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+}
+
+.tabs button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabs button:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.tabs button.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.app-content {
+  flex: 1;
+  overflow: hidden;
+  /* handle internal scroll in panels */
+  position: relative;
+}
+
+.tab-content {
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+}
+
+.primary-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.primary-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.status-dot.success {
+  background-color: var(--success);
+  box-shadow: 0 0 5px var(--success);
+}
+
+@media print {
+
+  .app-header,
+  .sidebar,
+  button:not(.print-hide),
+  /* Hide all buttons except... wait, hide all buttons usually */
+  .input-control,
+  .divider,
+  .save-section,
+  .empty-alert,
+  .loading {
+    display: none !important;
+  }
+
+  /* Override specific buttons */
+  button {
+    display: none !important;
+  }
+
+  /* Reset Layout */
+  html,
+  body,
+  #root,
+  .app-container,
+  .app-content {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .tab-content {
+    padding: 20px !important;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    color: black !important;
+  }
+
+  /* Typography Colors */
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  span,
+  div,
+  li {
+    color: black !important;
+    text-shadow: none !important;
+  }
+
+  .text-secondary {
+    color: #555 !important;
+  }
+
+  /* Chart & Card visibility */
+  .glass-panel {
+    background: white !important;
+    border: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .kpi-card {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    color: black !important;
+  }
+
+  .kpi-value {
+    color: black !important;
+  }
+
+  /* Table */
+  table {
+    width: 100% !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    color: black !important;
+    border-bottom: 2px solid #000 !important;
+  }
+
+  td {
+    border-bottom: 1px solid #ddd !important;
+    color: black !important;
+  }
+
+  /* Chart Container */
+  .chart-container {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+
+  .chart-point text {
+    fill: black !important;
+  }
+
+  /* Print Settings */
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+
+  /* Ensure backgrounds like chart lines print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide badge backgrounds if too dark, make them outline */
+  .badge {
+    background: transparent !important;
+    border: 1px solid #000 !important;
+    color: black !important;
+  }
+}
