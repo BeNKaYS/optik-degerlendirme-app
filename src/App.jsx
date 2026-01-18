@@ -194,7 +194,7 @@ const MainApp = () => {
       <header className="app-header glass-panel">
         <div className="header-top">
           <h1>Sınav Değerlendirme</h1>
-          <span className="badge">v1.5.0</span>
+          <span className="badge">v1.6.0</span>
         </div>
         <nav className="tabs">
           <button className={activeTab === 'exams' ? 'active' : ''} onClick={() => setActiveTab('exams')}>1. Sınavlar</button>
