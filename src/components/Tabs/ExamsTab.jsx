@@ -715,9 +715,9 @@ export default function ExamsTab({
                 }
 
                 .badge-settings {
-                    background: rgba(148, 163, 184, 0.2);
-                    color: #e2e8f0;
-                    border: 1px solid rgba(148, 163, 184, 0.4);
+                    background: rgba(226, 232, 240, 0.8);
+                    color: #000;
+                    border: 1px solid rgba(148, 163, 184, 0.6);
                     font-family: 'Courier New', Courier, monospace;
                     font-weight: 700;
                 }
