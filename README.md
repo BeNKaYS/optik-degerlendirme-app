@@ -1,13 +1,13 @@
-# 🎓 Optik Form Değerlendirme Uygulaması
+# 🎓 SARA - Sınav Analiz ve Raporlama Uygulaması
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.6.1-blue.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/version-1.6.3-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/platform-Windows-lightgrey.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/status-active-success.svg?style=for-the-badge" />
 </p>
 
-Modern, kullanıcı dostu ve kapsamlı bir sınav değerlendirme, analiz ve raporlama yazılımı. Öğretmenler ve okul idarecileri için özel olarak geliştirilmiştir. **Electron** ve **React** teknolojileri ile masaüstü performansı sunar.
+Modern, kullanıcı dostu ve kapsamlı bir sınav analiz, değerlendirme ve raporlama yazılımı. Öğretmenler ve okul idarecileri için özel olarak geliştirilmiştir. **Electron** ve **React** teknolojileri ile masaüstü performansı sunar.
 
 ---
 
@@ -73,8 +73,8 @@ Geliştirme ortamını kurmak için aşağıdaki adımları izleyin.
 
 1.  **Repoyu Klonlayın:**
     ```bash
-    git clone https://github.com/BeNKaYS/optik-degerlendirme-app.git
-    cd optik-degerlendirme-app
+    git clone https://github.com/BeNKaYS/sara-sinav-analiz-ve-raporlama-uygulamasi.git
+    cd sara-sinav-analiz-ve-raporlama-uygulamasi
     ```
 
 2.  **Bağımlılıkları Yükleyin:**
@@ -146,66 +146,83 @@ optik-degerlendirme-app/
 
 ---
 
-# 👨‍💻 Geliştirici Kartı
+## 👨‍💻 Geliştirici Kartı
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&pause=1000&color=25D366&center=true&vCenter=true&width=520&lines=Makine+%C3%96%C4%9Frenmesi+%26+C%2B%2B+Tutkunu;Bili%C5%9Fim+Teknolojileri+%C3%96%C4%9Fretmeni;Kod+Yazar%2C+Anlat%C4%B1r%2C+%C3%96%C4%9Fretirim" />
-</p>
+<div align="center">
 
----
+```
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+```
 
-# 👨‍💻 Sercan ÖZDEMİR
+# Sercan ÖZDEMİR
+**`BeNKaYS`**
 
-### `BeNKaYS` | Bilişim Teknolojileri Öğretmeni
+*Bilişim Teknolojileri Öğretmeni · Makine Öğrenmesi · C++*
 
-**Makine Öğrenmesi & C++ Tutkunu**
+<br>
 
----
+[![Mail](https://img.shields.io/badge/sercanozdemir@yandex.com-000000?style=flat-square&logo=mail.ru&logoColor=white)](mailto:sercanozdemir@yandex.com)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=flat-square&logo=whatsapp&logoColor=white)](https://wa.me/905068858585?text=Merhaba%20bilgi%20almak%20istiyorum)
 
-## 🧠 Profil Özeti
+```
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+```
 
-Eğitim ve yazılımı aynı potada eriten; özellikle **C++**, **algoritmalar** ve **Makine Öğrenmesi** odaklı projeler geliştiren bir geliştiriciyim. Amacım: karmaşık sistemleri **öğretilebilir, sade ve sürdürülebilir** hâle getirmek.
+</div>
 
-> _“Kod sadece çalışmamalı, anlaşılmalı.”_
+<br>
 
----
+## Hakkımda
 
-## 🧩 Uzmanlık Alanları
+Yazılım geliştirmede iki yönü birlikte taşıyorum: bir yanda **analitik düşünce** ve mühendislik disiplini, diğer yanda **yaratıcı tasarım** ve öğretici anlatım. Özellikle **C++**, **algoritmalar** ve **Makine Öğrenmesi** odaklı projelerde; karmaşık problemleri sade, anlaşılır ve uygulanabilir çözümlere dönüştürmeyi hedefliyorum.
 
-- 🧠 Makine Öğrenmesi (Temel modeller, veri işleme, algoritmik yaklaşım)
-- ⚙️ C++ (OOP, performans, sistem mantığı)
-- 🖥️ Algoritma & Mantıksal Tasarım
-- 📚 Eğitim Odaklı Yazılım Geliştirme
-- 🔧 Sistem & Uygulama Geliştirme
+> *"Analiz ederim, sadeleştiririm, öğretirim."*
 
----
+<br>
 
-## 🛠️ Teknoloji Yığını
+## Teknoloji Yığını
 
-<p align="left">
-  <img src="https://skillicons.dev/icons?i=cpp,python,git,linux,opencv,vscode&theme=light" />
-</p>
+<div align="center">
 
----
+| Alan | Teknolojiler |
+|------|-------------|
+| **Diller** | C++ · Python |
+| **Makine Öğrenmesi** | Temel modeller · Veri işleme · OpenCV |
+| **Araçlar** | Git · Linux · VSCode |
 
-## 📲 İletişim
+</div>
 
-- 📧 **E-posta:** sercanozdemir@yandex.com
-- 💬 **WhatsApp:** [Hızlı Mesaj Gönder](https://wa.me/905068858585?text=Merhaba%20bilgi%20almak%20istiyorum)
+<br>
 
----
+## Odak Alanlarım
 
-## 📌 Geliştirici Kartı QR
+```
+┌─────────────────────────────────────────────────┐
+│  🧠  Makine Öğrenmesi  ───────────── [ ████░ ]  │
+│  ⚙️  C++ & OOP         ───────────── [ █████ ]  │
+│  📐  Algoritma Tasarımı ──────────── [ ████░ ]  │
+│  📚  Eğitim Odaklı Dev  ──────────── [ █████ ]  │
+└─────────────────────────────────────────────────┘
+```
 
-> Uygulamalar, dokümanlar ve sunumlar için
+<br>
 
-![WhatsApp QR](https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://wa.me/905068858585?text=Merhaba%20bilgi%20almak%20istiyorum)
+## İletişim
 
----
+Proje iş birlikleri veya sorularınız için:
 
-## ✨ Motto
+- 📧 [sercanozdemir@yandex.com](mailto:sercanozdemir@yandex.com)
+- 💬 [WhatsApp'tan hızlı ulaşın](https://wa.me/905068858585?text=Merhaba%20bilgi%20almak%20istiyorum)
 
-> **Üreten öğretir, öğreten kalıcı iz bırakır.**
+<br>
+
+<div align="center">
+
+*Gündüz sınıf, gece terminal.*
+
+![](https://komarev.com/ghpvc/?username=BeNKaYS&style=flat-square&color=555555)
+
+</div>
 
 ---
 
