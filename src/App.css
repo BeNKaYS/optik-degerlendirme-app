@@ -157,6 +157,55 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
+  gap: 10px;
+  min-height: 24px;
+}
+
+.status-left,
+.status-center,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.status-left {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.status-center {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-right {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.status-check.ready {
+  color: #047857;
+  border-color: rgba(4, 120, 87, 0.25);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.status-check.status-final {
+  font-weight: 700;
 }
 
 .tab-content {

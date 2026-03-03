@@ -6,7 +6,7 @@
  * @date 2024
  */
 
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -167,9 +167,28 @@ app.whenReady().then(() => {
 
     createWindow();
 
+    // Menü kapalı olsa da yenileme kısayollarını aktif tut
+    globalShortcut.register('CommandOrControl+R', () => {
+        const focusedWindow = BrowserWindow.getFocusedWindow() || mainWindow;
+        if (focusedWindow && !focusedWindow.isDestroyed()) {
+            focusedWindow.webContents.reload();
+        }
+    });
+
+    globalShortcut.register('CommandOrControl+Shift+R', () => {
+        const focusedWindow = BrowserWindow.getFocusedWindow() || mainWindow;
+        if (focusedWindow && !focusedWindow.isDestroyed()) {
+            focusedWindow.webContents.reloadIgnoringCache();
+        }
+    });
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+});
+
+app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
 });
 
 // Tüm pencereler kapandığında uygulamayı kapat (Mac hariç)

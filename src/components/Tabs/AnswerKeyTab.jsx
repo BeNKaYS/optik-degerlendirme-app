@@ -34,6 +34,13 @@ export default function AnswerKeyTab({ data, setData, attendanceData, onNext, on
     const [startRow, setStartRow] = useState(2);     // Cevapların başladığı satır (1-based)
     const [mappings, setMappings] = useState({});    // { "SRC1_A": "C", "SRC1_B": "E" }
 
+    // Manuel giriş
+    const [showManualEntry, setShowManualEntry] = useState(false);
+    const [manualDocType, setManualDocType] = useState('GENEL');
+    const [manualQuestionCount, setManualQuestionCount] = useState(40);
+    const [manualAnswersByType, setManualAnswersByType] = useState({}); // { "SRC1_A": "ABC...", "SRC1_B": "..." }
+    const [manualCursorByType, setManualCursorByType] = useState({}); // { "SRC1_A": { pos, answerIndex } }
+
     // Sonuç (Oluşturulan veya Mevcut)
     const [generatedKeys, setGeneratedKeys] = useState(null);
     const [isEditing, setIsEditing] = useState(false); // Manuel düzenleme modu
@@ -144,6 +151,101 @@ export default function AnswerKeyTab({ data, setData, attendanceData, onNext, on
         const match = str.match(/[A-E]/);
         if (match) return match[0];
         return '';
+    };
+
+    const parseManualAnswers = (input, questionCount) => {
+        const clean = String(input || '').toUpperCase().replace(/[^A-E1-5]/g, '');
+        const parsed = clean
+            .split('')
+            .map((char) => parseAnswer(char))
+            .filter(Boolean)
+            .slice(0, questionCount);
+
+        const answersObj = {};
+        parsed.forEach((ans, idx) => {
+            answersObj[idx + 1] = ans;
+        });
+
+        return answersObj;
+    };
+
+    const handleManualInputChange = (docType, booklet, value) => {
+        const key = `${docType}_${booklet}`;
+        setManualAnswersByType(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleManualCursorInfo = (docType, booklet, value, cursorPos) => {
+        const key = `${docType}_${booklet}`;
+        const safePos = Math.max(0, Number(cursorPos) || 0);
+        const beforeCursor = String(value || '').slice(0, safePos);
+        const validBeforeCursor = beforeCursor.toUpperCase().replace(/[^A-E1-5]/g, '').length;
+        const answerIndex = Math.min((Number(manualQuestionCount) || 1), validBeforeCursor + 1);
+
+        setManualCursorByType(prev => ({
+            ...prev,
+            [key]: {
+                pos: safePos + 1,
+                answerIndex
+            }
+        }));
+    };
+
+    const getManualStats = (docType, booklet) => {
+        const key = `${docType}_${booklet}`;
+        const rawValue = String(manualAnswersByType[key] || '');
+        const validCountRaw = rawValue.toUpperCase().replace(/[^A-E1-5]/g, '').length;
+        const validCount = Math.min(validCountRaw, Number(manualQuestionCount) || 0);
+        const cursor = manualCursorByType[key] || { pos: 1, answerIndex: 1 };
+
+        return {
+            validCount,
+            cursor
+        };
+    };
+
+    const handleManualGenerate = () => {
+        setError(null);
+        setSuccess(null);
+
+        const qCount = Math.max(1, Math.min(300, Number(manualQuestionCount) || 40));
+
+        const fallbackDocType = String(manualDocType || '').trim().toUpperCase();
+        const targetDocTypes = docTypes.length > 0
+            ? docTypes
+            : (fallbackDocType ? [fallbackDocType] : []);
+
+        if (targetDocTypes.length === 0) {
+            setError('Belge türü bulunamadı. Lütfen manuel belge türü giriniz.');
+            return;
+        }
+
+        const keys = { A: {}, B: {} };
+        let hasManualData = false;
+
+        targetDocTypes.forEach((dtype) => {
+            const aRaw = manualAnswersByType[`${dtype}_A`] || '';
+            const bRaw = manualAnswersByType[`${dtype}_B`] || '';
+            const aAnswers = parseManualAnswers(aRaw, qCount);
+            const bAnswers = parseManualAnswers(bRaw, qCount);
+
+            if (Object.keys(aAnswers).length > 0) {
+                keys.A[dtype] = { ...aAnswers };
+                hasManualData = true;
+            }
+            if (Object.keys(bAnswers).length > 0) {
+                keys.B[dtype] = { ...bAnswers };
+                hasManualData = true;
+            }
+        });
+
+        if (!hasManualData) {
+            setError('Manuel giriş için en az bir belge türünde A veya B kitapçığına cevap giriniz.');
+            return;
+        }
+
+        setGeneratedKeys(keys);
+        setIsEditing(true);
+        setSuccess('✅ Manuel cevap anahtarı oluşturuldu. Aşağıdaki tablodan düzenleyip kaydedebilirsiniz.');
     };
 
     // 5. Cevap Anahtarı Oluştur
@@ -271,6 +373,16 @@ export default function AnswerKeyTab({ data, setData, attendanceData, onNext, on
                         <span className="btn-icon">📁</span>
                         <span className="btn-text">{loading ? 'Yükleniyor...' : 'Excel Dosyası Seç'}</span>
                     </button>
+
+                    <button
+                        onClick={() => setShowManualEntry(prev => !prev)}
+                        className="upload-btn manual-btn"
+                        disabled={loading}
+                    >
+                        <span className="btn-icon">✍️</span>
+                        <span className="btn-text">{showManualEntry ? 'Manuel Alanı Kapat' : 'Manuel Cevap Gir'}</span>
+                    </button>
+
                     {fileName && (
                         <div className="file-selected">
                             <span className="file-icon">✓</span>
@@ -393,6 +505,101 @@ export default function AnswerKeyTab({ data, setData, attendanceData, onNext, on
                             <span className="btn-icon">⚡</span>
                             <span>Cevap Anahtarı Oluştur</span>
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* MANUEL GİRİŞ PANELİ */}
+            {showManualEntry && (
+                <div className="manual-section">
+                    <div className="manual-section-header">
+                        <h3>✍️ Manuel Cevap Girişi</h3>
+                        <div className="manual-section-controls">
+                            {docTypes.length === 0 && (
+                                <input
+                                    type="text"
+                                    value={manualDocType}
+                                    onChange={(e) => setManualDocType(e.target.value)}
+                                    placeholder="Belge Türü (Örn: GENEL)"
+                                    className="manual-input"
+                                />
+                            )}
+                            <input
+                                type="number"
+                                min="1"
+                                max="300"
+                                value={manualQuestionCount}
+                                onChange={(e) => setManualQuestionCount(parseInt(e.target.value) || 1)}
+                                className="manual-input manual-input-short"
+                                title="Soru Sayısı"
+                            />
+                            <button onClick={handleManualGenerate} className="generate-btn manual-generate-btn">
+                                <span className="btn-icon">⚡</span>
+                                <span>Manuel Anahtar Oluştur</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="manual-cards">
+                        {(docTypes.length > 0 ? docTypes : [String(manualDocType || '').trim().toUpperCase() || 'GENEL']).map((dtype) => (
+                            <div key={dtype} className="mapping-item manual-card">
+                                <div className="mapping-header">
+                                    <span className="mapping-icon">📄</span>
+                                    <span className="mapping-title">{dtype}</span>
+                                </div>
+
+                                <div className="mapping-selects manual-input-grid">
+                                    <div className="select-group">
+                                        <label className="select-label">A Kitapçığı:</label>
+                                        {(() => {
+                                            const stats = getManualStats(dtype, 'A');
+                                            return (
+                                                <div className="manual-text-meta">
+                                                    <span>{`Cevap: ${stats.validCount}/${manualQuestionCount}`}</span>
+                                                    <span>{`CEVAP: ${stats.cursor.answerIndex}`}</span>
+                                                </div>
+                                            );
+                                        })()}
+                                        <input
+                                            type="text"
+                                            className="manual-text-input"
+                                            value={manualAnswersByType[`${dtype}_A`] || ''}
+                                            onChange={(e) => handleManualInputChange(dtype, 'A', e.target.value)}
+                                            onClick={(e) => handleManualCursorInfo(dtype, 'A', e.target.value, e.target.selectionStart)}
+                                            onKeyUp={(e) => handleManualCursorInfo(dtype, 'A', e.target.value, e.target.selectionStart)}
+                                            onSelect={(e) => handleManualCursorInfo(dtype, 'A', e.target.value, e.target.selectionStart)}
+                                            placeholder="A-E veya 1-5 (örn: A B C D E)"
+                                        />
+                                    </div>
+                                    <div className="select-group">
+                                        <label className="select-label">B Kitapçığı:</label>
+                                        {(() => {
+                                            const stats = getManualStats(dtype, 'B');
+                                            return (
+                                                <div className="manual-text-meta">
+                                                    <span>{`Cevap: ${stats.validCount}/${manualQuestionCount}`}</span>
+                                                    <span>{`CEVAP: ${stats.cursor.answerIndex}`}</span>
+                                                </div>
+                                            );
+                                        })()}
+                                        <input
+                                            type="text"
+                                            className="manual-text-input"
+                                            value={manualAnswersByType[`${dtype}_B`] || ''}
+                                            onChange={(e) => handleManualInputChange(dtype, 'B', e.target.value)}
+                                            onClick={(e) => handleManualCursorInfo(dtype, 'B', e.target.value, e.target.selectionStart)}
+                                            onKeyUp={(e) => handleManualCursorInfo(dtype, 'B', e.target.value, e.target.selectionStart)}
+                                            onSelect={(e) => handleManualCursorInfo(dtype, 'B', e.target.value, e.target.selectionStart)}
+                                            placeholder="A-E veya 1-5 (örn: B C D E A)"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="manual-help-text">
+                        Manuel girişte harf veya sayı kullanabilirsiniz (A-E / 1-5). Sistem otomatik dönüştürür.
                     </div>
                 </div>
             )}

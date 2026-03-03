@@ -1,7 +1,7 @@
 # 🎓 SARA - Sınav Analiz ve Raporlama Uygulaması
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.6.3-blue.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/version-1.6.4-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/platform-Windows-lightgrey.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/status-active-success.svg?style=for-the-badge" />
@@ -42,10 +42,16 @@ Modern, kullanıcı dostu ve kapsamlı bir sınav analiz, değerlendirme ve rapo
 - **PDF Desteği:** İstatistik sayfalarını ve grafiklerini tek tıkla PDF'e dönüştürür.
 - **İstatistik Grafikleri:** Başarı trendleri, ortalama puanlar ve belge türü dağılımları.
 
+### 🧩 Cevap Anahtarı ve Manuel Giriş
+- **Manuel Cevap Girişi:** Excel dosyası olmadan belge türü bazlı A/B kitapçığı cevapları tek satır metin kutularından girilebilir.
+- **Canlı Sayaç:** Her kutuda `Cevap: X/N` ve `CEVAP: Y` (imleç bazlı pozisyon) bilgisi gösterilir.
+- **Esnek Parse:** `A-E` veya `1-5` formatı otomatik tanınır ve standart cevap anahtarına dönüştürülür.
+
 ### 🎨 Kullanıcı Deneyimi
 - **Koyu/Açık Tema:** Göz yormayan koyu mod desteği.
 - **Güvenli Depolama:** Sınav verileri kullanıcının `AppData` klasöründe güvenli şekilde saklanır.
-- **Hızlı Erişim:** Klavye kısayolları (F1 Yardım, Ctrl+S Kaydet).
+- **Kalıcı Veri:** Optik veri ve sınav ayarları aktif sınava otomatik kaydedilir; uygulama yeniden başlatıldığında korunur.
+- **Hızlı Erişim:** Kısayollar (F1 Yardım, Ctrl+R Yenile, Ctrl+Shift+R Zorla Yenile).
 
 ---
 
@@ -128,7 +134,14 @@ optik-degerlendirme-app/
 
 ## 📜 Sürüm Geçmişi
 
-### v1.6.0 (Güncel)
+### v1.6.4 (Güncel)
+- ✨ **Yeni:** Cevap anahtarında manuel giriş paneli (belge türü bazlı A/B metin kutuları).
+- ✨ **Yeni:** Manuel girişte canlı sayaç ve imleç bazlı cevap pozisyon göstergesi.
+- ✨ **Yeni:** Durum çubuğuna lisans süresi, aktif sınav geçme notu ve değerlendirme belgeleri kontrolü eklendi.
+- 🔄 **İyileştirme:** Optik satır haritası hizalama ve seçim görünürlüğü geliştirildi.
+- 🛡️ **Teknik:** Menü kapalı modda `Ctrl+R` / `Ctrl+Shift+R` global kısayolları eklendi.
+
+### v1.6.0
 - ✨ **Yeni:** FMT Düzenleyici entegrasyonu (Görsel editör ve ASCII önizleme).
 - 🐛 **Düzeltme:** Başarı oranı hesaplama mantığı güncellendi (Sınava girenler -> Okunan veri).
 - 🎨 **Geliştirme:** Ruler ve Grid hizalaması optimize edildi (130 karakter sabitleme).

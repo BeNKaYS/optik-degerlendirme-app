@@ -19,11 +19,20 @@ export default function AboutTab() {
                         <img src={`${import.meta.env.BASE_URL}SARA_Hakkinda.png`} alt="SARA Hakkında Görseli" className="about-header-logo" />
                     </div>
                     <h1>Optik Değerlendirme</h1>
-                    <p className="version">v1.6.1 (Stable)</p>
+                    <p className="version">v1.6.4 (Stable)</p>
                     <p className="description">
                         Eğitim kurumları için geliştirilmiş, hızlı, güvenli ve çevrimdışı çalışabilen
                         gelişmiş optik form okuma ve değerlendirme sistemi.
                     </p>
+                    <div className="release-highlights">
+                        <h4>Son Güncellemeler</h4>
+                        <ul>
+                            <li>✅ Cevap anahtarında manuel metin kutusu girişi ve canlı cevap sayacı eklendi.</li>
+                            <li>✅ Durum çubuğuna lisans süresi, aktif sınav geçme notu ve belge kontrolü eklendi.</li>
+                            <li>✅ Optik satır haritası görünümü ve seçim kullanılabilirliği iyileştirildi.</li>
+                            <li>✅ Menü kapalıyken yenileme kısayolları (Ctrl+R / Ctrl+Shift+R) aktif hale getirildi.</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div className="divider"></div>
@@ -141,6 +150,28 @@ export default function AboutTab() {
                 .about-header h1 { font-size: 2.5rem; margin: 10px 0; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 .version { color: var(--text-secondary); font-family: monospace; background: rgba(0,0,0,0.2); display: inline-block; padding: 4px 10px; border-radius: 20px; }
                 .description { margin-top: 20px; font-size: 1.1rem; line-height: 1.6; color: var(--text-secondary); max-width: 600px; margin-left: auto; margin-right: auto; }
+
+                .release-highlights {
+                    margin: 18px auto 0;
+                    max-width: 720px;
+                    text-align: left;
+                    background: rgba(99, 102, 241, 0.08);
+                    border: 1px solid rgba(99, 102, 241, 0.18);
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                }
+                .release-highlights h4 {
+                    margin: 0 0 8px 0;
+                    font-size: 0.95rem;
+                    color: var(--accent);
+                }
+                .release-highlights ul {
+                    margin: 0;
+                    padding-left: 18px;
+                    color: var(--text-secondary);
+                    line-height: 1.5;
+                    font-size: 0.9rem;
+                }
 
                 .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 40px 0; }
                 .light-mode .divider { background: rgba(0,0,0,0.1); }

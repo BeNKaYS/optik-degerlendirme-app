@@ -5,7 +5,7 @@
  * @date 2024
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // ==========================================
 //  BİLEŞEN TANIMI
@@ -32,6 +32,7 @@ export default function ExamsTab({
     const [scoringType, setScoringType] = useState(() => localStorage.getItem('def_scoringType') || 'correct'); // 'net' | 'correct'
     const [wrongRatio, setWrongRatio] = useState(() => localStorage.getItem('def_wrongRatio') || '4'); // '0', '3', '4'
     const [passGrade, setPassGrade] = useState(() => localStorage.getItem('def_passGrade') || '50');
+    const hasHydratedFromLastExam = useRef(false);
 
     // Ayarlar değiştikçe kaydet
     useEffect(() => {
@@ -57,6 +58,25 @@ export default function ExamsTab({
             // Tarihe göre tersten sırala (En yeni en üstte)
             list.sort((a, b) => b.timestamp - a.timestamp);
             setExams(list);
+
+            if (!hasHydratedFromLastExam.current && list.length > 0) {
+                const latestExamName = String(list[0]?.name || '');
+                const sanitizedName = latestExamName
+                    .replace(/_\d{2}_\d{2}_\d{4}$/u, '')
+                    .replace(/\s+_\d{2}_\d{2}_\d{4}$/u, '')
+                    .trim();
+
+                if (sanitizedName) setExamName(sanitizedName);
+
+                const latestSettings = list[0]?.settings || {};
+
+                if (latestSettings.questionCount != null) setQuestionCount(String(latestSettings.questionCount));
+                if (latestSettings.scoringType) setScoringType(String(latestSettings.scoringType));
+                if (latestSettings.wrongRatio != null) setWrongRatio(String(latestSettings.wrongRatio));
+                if (latestSettings.passGrade != null) setPassGrade(String(latestSettings.passGrade));
+
+                hasHydratedFromLastExam.current = true;
+            }
         } catch (e) {
             console.error(e);
             setMsg({ type: 'error', text: 'Sınav listesi alınamadı. Lütfen uygulamayı yeniden başlatın.' });
@@ -166,6 +186,13 @@ export default function ExamsTab({
     const handleConfirmLoad = async () => {
         if (!loadConfirmExam?.id) return;
         const examId = loadConfirmExam.id;
+        const selectedSettings = loadConfirmExam.settings || {};
+
+        if (selectedSettings.questionCount != null) setQuestionCount(String(selectedSettings.questionCount));
+        if (selectedSettings.scoringType) setScoringType(String(selectedSettings.scoringType));
+        if (selectedSettings.wrongRatio != null) setWrongRatio(String(selectedSettings.wrongRatio));
+        if (selectedSettings.passGrade != null) setPassGrade(String(selectedSettings.passGrade));
+
         setLoadConfirmExam(null);
         await handleLoadExam(examId);
     };

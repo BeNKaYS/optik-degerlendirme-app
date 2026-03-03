@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AttendanceTab from './components/Tabs/AttendanceTab';
 import OpticalTab from './components/Tabs/OpticalTab';
 import AnswerKeyTab from './components/Tabs/AnswerKeyTab';
@@ -23,6 +23,7 @@ const MainApp = () => {
   const [activeTab, setActiveTab] = useState('exams');
   const [showHelp, setShowHelp] = useState(false);
   const [licenseValid, setLicenseValid] = useState(null);
+  const [licenseInfo, setLicenseInfo] = useState(null);
 
   // Data States
   const [examInfo, setExamInfo] = useState(null);
@@ -30,6 +31,7 @@ const MainApp = () => {
   const [opticalData, setOpticalData] = useState(null);
   const [answerKeyData, setAnswerKeyData] = useState(null);
   const [results, setResults] = useState(null);
+  const isInitialOpticalSave = useRef(true);
 
   // License Check Hook
   useEffect(() => {
@@ -38,12 +40,15 @@ const MainApp = () => {
         try {
           const res = await window.api.checkLicenseStatus();
           setLicenseValid(res.valid);
+          setLicenseInfo(res);
         } catch (e) {
           setLicenseValid(false);
+          setLicenseInfo(null);
         }
       } else {
         // Dev mode or web
         setLicenseValid(true);
+        setLicenseInfo({ valid: true, owner: 'Dev', expiry: null, reason: 'Geliştirme modu' });
       }
     };
     checkLicense();
@@ -75,10 +80,12 @@ const MainApp = () => {
 
   const handleStartExam = (examOrName) => {
     if (typeof examOrName === 'object' && examOrName.id) {
+      const settings = examOrName.settings || examOrName?.data?.settings || {};
       setExamInfo({
         id: examOrName.id,
         name: examOrName.name,
-        timestamp: examOrName.timestamp
+        timestamp: examOrName.timestamp,
+        data: { settings }
       });
     } else {
       const name = typeof examOrName === 'object' ? examOrName.name : examOrName;
@@ -117,10 +124,12 @@ const MainApp = () => {
 
   const handleLoadExam = (exam) => {
     if (!exam || !exam.data) return;
+    const settings = exam.data.settings || exam.settings || {};
     setExamInfo({
       id: exam.id,
       name: exam.name.split(' _')[0] || exam.name,
-      timestamp: exam.timestamp
+      timestamp: exam.timestamp,
+      data: { settings }
     });
     setAttendanceData(exam.data.attendanceData || null);
     setOpticalData(exam.data.opticalData || null);
@@ -172,6 +181,15 @@ const MainApp = () => {
     await saveCurrentExam({ results: calculatedResults || results });
   };
 
+  useEffect(() => {
+    if (isInitialOpticalSave.current) {
+      isInitialOpticalSave.current = false;
+      return;
+    }
+    if (!examInfo || opticalData === null) return;
+    saveCurrentExam({ opticalData });
+  }, [opticalData, examInfo?.id]);
+
   const handleOpenCheating = (exam) => {
     if (exam) {
       handleLoadExam(exam);
@@ -215,7 +233,28 @@ const MainApp = () => {
   };
 
   const activeModule = moduleItems.find((item) => item.id === activeTab) || moduleItems[0];
-  const statusText = examInfo?.name ? `Aktif sınav: ${examInfo.name}` : 'Hazır';
+  const activePassGrade = examInfo?.data?.settings?.passGrade;
+  const statusText = examInfo?.name
+    ? `Aktif sınav: ${examInfo.name} | Geçme Notu: ${activePassGrade ?? '-'}`
+    : 'Hazır';
+
+  const requiredDocs = [
+    { key: 'attendance', label: 'Yoklama', ready: !!attendanceData },
+    { key: 'optical', label: 'Optik', ready: !!opticalData },
+    { key: 'answerKey', label: 'Cevap Anahtarı', ready: !!answerKeyData }
+  ];
+  const canEvaluate = requiredDocs.every((item) => item.ready);
+
+  const licenseStatusText = (() => {
+    if (!licenseInfo) return 'Lisans: Kontrol ediliyor';
+    if (!licenseInfo.valid) return 'Lisans: Geçersiz';
+    if (!licenseInfo.expiry) return 'Lisans: Sınırsız';
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const remainingMs = Number(licenseInfo.expiry) - Date.now();
+    const remainingDays = Math.max(0, Math.ceil(remainingMs / msPerDay));
+    return `Lisans: ${remainingDays} gün`;
+  })();
 
   // -------------------------------------------------------------------------
   //  3. KOŞULLU RENDER (HOOK'LARDAN SONRA OLMALI)
@@ -299,8 +338,19 @@ const MainApp = () => {
         </main>
 
         <footer className="status-bar">
-          <span>Durum: {statusText}</span>
-          <span>Modül: {activeModule.label}</span>
+          <span className="status-left">{licenseStatusText}</span>
+          <span className="status-center">Durum: {statusText}</span>
+          <span className="status-right">
+            Değerlendirme Belgeleri:
+            {requiredDocs.map((doc) => (
+              <span key={doc.key} className={`status-check ${doc.ready ? 'ready' : ''}`}>
+                {doc.ready ? '☑' : '☐'} {doc.label}
+              </span>
+            ))}
+            <span className={`status-check status-final ${canEvaluate ? 'ready' : ''}`}>
+              {canEvaluate ? '☑ Hazır' : '☐ Eksik'}
+            </span>
+          </span>
         </footer>
       </section>
 

@@ -636,6 +636,20 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
         setFields(fields.map(f => f.key === key ? { ...f, label: newLabel } : f));
     };
 
+    const nonEmptyRows = rawText
+        ? rawText.split(/\r?\n/).filter(line => line.trim().length > 0)
+        : [];
+    const totalRowCount = nonEmptyRows.length;
+    const safeActiveRowIndex = totalRowCount > 0
+        ? Math.min(activeRowIndex, totalRowCount - 1)
+        : 0;
+    const currentRowText = totalRowCount > 0 ? (nonEmptyRows[safeActiveRowIndex] || '') : '';
+    const mapLength = Math.max(currentRowText.length, 130);
+    const cellWidth = 12;
+    const mapPixelWidth = mapLength * cellWidth;
+    const hasCompletedSelection = selectionStart !== null && selectionEnd !== null;
+    const selectedRangeLength = hasCompletedSelection ? (selectionEnd - selectionStart + 1) : 0;
+
 
 
 
@@ -668,25 +682,25 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
                     <div className="settings-title" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <h3>Satır Haritası & Seçim</h3>
                         {/* Satır Navigasyonu */}
-                        {rawText && (
+                        {totalRowCount > 0 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 <button
                                     className="secondary-btn"
                                     style={{ padding: '2px 8px', fontSize: '0.9rem', height: '24px' }}
                                     onClick={() => setActiveRowIndex(prev => Math.max(0, prev - 1))}
-                                    disabled={activeRowIndex === 0}
+                                    disabled={safeActiveRowIndex === 0}
                                     title="Önceki Satır"
                                 >
                                     ◀
                                 </button>
                                 <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#64748b' }}>
-                                    {activeRowIndex + 1} / {rawText.split(/\r?\n/).filter(line => line.trim().length > 0).length}
+                                    {safeActiveRowIndex + 1} / {totalRowCount}
                                 </span>
                                 <button
                                     className="secondary-btn"
                                     style={{ padding: '2px 8px', fontSize: '0.9rem', height: '24px' }}
-                                    onClick={() => setActiveRowIndex(prev => Math.min(rawText.split(/\r?\n/).filter(line => line.trim().length > 0).length - 1, prev + 1))}
-                                    disabled={!rawText || activeRowIndex >= rawText.split(/\r?\n/).filter(line => line.trim().length > 0).length - 1}
+                                    onClick={() => setActiveRowIndex(prev => Math.min(totalRowCount - 1, prev + 1))}
+                                    disabled={totalRowCount === 0 || safeActiveRowIndex >= totalRowCount - 1}
                                     title="Sonraki Satır"
                                 >
                                     ▶
@@ -793,18 +807,29 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
                         : "Detaylı görünüm. Aralık belirlemek için 'Düzenle' butonuna basın."}
                 </div>
 
+                <div className="row-map-meta">
+                    <span className="meta-chip">Satır Uzunluğu: {currentRowText.length}</span>
+                    <span className="meta-chip">Aralık: 0 - {mapLength - 1}</span>
+                    {selectionStart !== null && <span className="meta-chip">Başlangıç: {selectionStart}</span>}
+                    {hasCompletedSelection && (
+                        <span className="meta-chip meta-chip-primary">
+                            Seçim: {selectionStart} - {selectionEnd} ({selectedRangeLength} karakter)
+                        </span>
+                    )}
+                </div>
+
                 <div className="ruler-wrapper">
                     {/* Ruler Numbers */}
-                    <div className="ruler-numbers">
-                        {Array.from({ length: Math.ceil(Math.max((rawText ? rawText.split(/\r?\n/)[activeRowIndex || 0].length : 0), 130) / 10) + 1 }).map((_, i) => (
-                            <span key={i} style={{ left: `${i * 10 * 10}px` }}>{i * 10}</span>
+                    <div className="ruler-numbers" style={{ width: `${mapPixelWidth}px` }}>
+                        {Array.from({ length: Math.ceil(mapLength / 10) + 1 }).map((_, i) => (
+                            <span key={i} style={{ left: `${i * 10 * cellWidth}px` }}>{i * 10}</span>
                         ))}
                     </div>
                     {/* Grid Visualization */}
-                    <div className="row-map-grid" style={{ width: 'fit-content', minWidth: '100%' }}>
-                        {Array.from({ length: Math.max((rawText ? rawText.split(/\r?\n/)[activeRowIndex || 0].length : 0), 130) }).map((_, i) => {
+                    <div className="row-map-grid" style={{ width: `${mapPixelWidth}px` }}>
+                        {Array.from({ length: mapLength }).map((_, i) => {
                             const field = getFieldAt(i);
-                            const char = rawText ? (rawText.split(/\r?\n/)[activeRowIndex || 0]?.[i] || '') : '';
+                            const char = currentRowText[i] || '';
 
                             // Selection Highlighting Logic
                             let isSelected = false;
@@ -1980,6 +2005,31 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
             background: #ffffff; /* Explicit background */
             max-width: 100% !important;
         }
+
+        .row-map-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 10px 4px;
+        }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #475569;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+        }
+
+        .meta-chip-primary {
+            color: #1d4ed8;
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
         
         .ruler-wrapper {
             position: relative;
@@ -1992,7 +2042,7 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
             margin-top: 10px;
             width: 100%;
             box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding-left: 40px;
+            padding-left: 0;
         }
         
         /* Custom scrollbar for ruler */
@@ -2014,8 +2064,7 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
         .ruler-numbers {
             position: absolute;
             top: 8px;
-            left: 40px;
-            width: 1500px;
+            left: 0;
             font-size: 0.75rem;
             color: #3b82f6;
             pointer-events: none;
@@ -2031,10 +2080,9 @@ export default function OpticalTab({ data, setData, attendanceData, onNext }) {
         .row-map-grid {
             position: absolute;
             top: 32px;
-            left: 40px;
+            left: 0;
             display: flex;
             padding-left: 0;
-            width: 1500px;
         }
         
         .grid-cell {
