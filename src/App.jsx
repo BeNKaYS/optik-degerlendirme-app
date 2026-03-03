@@ -248,7 +248,7 @@ const MainApp = () => {
     <div className="app-container">
       <aside className="left-menu">
         <div className="menu-brand" title="SARA">
-          <img src="/SARA_PNG.png" alt="SARA" className="menu-brand-logo" />
+          <img src={`${import.meta.env.BASE_URL}SARA_PNG.png`} alt="SARA" className="menu-brand-logo" />
         </div>
 
         <div className="menu-tools">

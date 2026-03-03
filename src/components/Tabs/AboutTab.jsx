@@ -16,7 +16,7 @@ export default function AboutTab() {
                 {/* Header Section */}
                 <div className="about-header text-center">
                     <div className="logo-placeholder">
-                        <img src="/SARA_Hakkinda.png" alt="SARA Hakkında Görseli" className="about-header-logo" />
+                        <img src={`${import.meta.env.BASE_URL}SARA_Hakkinda.png`} alt="SARA Hakkında Görseli" className="about-header-logo" />
                     </div>
                     <h1>Optik Değerlendirme</h1>
                     <p className="version">v1.6.1 (Stable)</p>
@@ -33,7 +33,7 @@ export default function AboutTab() {
                     <h3>👨‍💻 Geliştirici Kartı</h3>
                     <div className="dev-card glass-panel-inner">
                         <div className="dev-avatar">
-                            <img src="/Arka_qq.png" alt="Geliştirici Görseli" className="dev-avatar-image" />
+                            <img src={`${import.meta.env.BASE_URL}Arka_qq.png`} alt="Geliştirici Görseli" className="dev-avatar-image" />
                         </div>
                         <div className="dev-info">
                             <h2 className="dev-name">Sercan ÖZDEMİR</h2>
