@@ -19,7 +19,7 @@ export default function AboutTab() {
                         <img src={`${import.meta.env.BASE_URL}SARA_Hakkinda.png`} alt="SARA Hakkında Görseli" className="about-header-logo" />
                     </div>
                     <h1>Optik Değerlendirme</h1>
-                    <p className="version">v1.6.4 (Stable)</p>
+                    <p className="version">v1.6.5 (Stable)</p>
                     <p className="description">
                         Eğitim kurumları için geliştirilmiş, hızlı, güvenli ve çevrimdışı çalışabilen
                         gelişmiş optik form okuma ve değerlendirme sistemi.

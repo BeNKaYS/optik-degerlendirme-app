@@ -1,7 +1,7 @@
 # 🎓 SARA - Sınav Analiz ve Raporlama Uygulaması
 
 <p align="center">
-    <img src="https://img.shields.io/badge/version-1.6.4-blue.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/version-1.6.5-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/platform-Windows-lightgrey.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/status-active-success.svg?style=for-the-badge" />
@@ -134,7 +134,10 @@ optik-degerlendirme-app/
 
 ## 📜 Sürüm Geçmişi
 
-### v1.6.4 (Güncel)
+### v1.6.5 (Güncel)
+- 🔖 **Sürüm:** 1.6.4 üzerinde yapılan iyileştirmeler ayrı release olarak paketlendi.
+
+### v1.6.4
 - ✨ **Yeni:** Cevap anahtarında manuel giriş paneli (belge türü bazlı A/B metin kutuları).
 - ✨ **Yeni:** Manuel girişte canlı sayaç ve imleç bazlı cevap pozisyon göstergesi.
 - ✨ **Yeni:** Durum çubuğuna lisans süresi, aktif sınav geçme notu ve değerlendirme belgeleri kontrolü eklendi.
